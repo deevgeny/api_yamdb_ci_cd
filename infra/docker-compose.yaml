@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Database container
+  db:
+    image: postgres:13.0-alpine
+    volumes:
+      - database:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+
+  # Web application container
+  web:
+    image: evgeny81d/api_yamdb:study
+    restart: always
+    volumes:
+      - static:/app/static/
+      - media:/app/media/
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+
+  # Nginx server container
+  nginx:
+    image: nginx:1.21.3-alpine
+    ports:
+      - "80:80"
+    volumes:
+      # Bind mount nginx config file
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      # Bind static and media volumes (shared with web application)
+      - static:/var/html/static/
+      - media:/var/html/media/
+    depends_on:
+      - web
+
+volumes:
+  static:
+  media:
+  database:
